@@ -90,6 +90,8 @@
     <!-- JavaScript code -->
     <script>
       document.getElementById("registrationForm").addEventListener("submit", function (event) {
+        event.preventDefault();  // Prevent form submission
+
         var isValid = true;
 
         // Helper function to display error
@@ -135,11 +137,12 @@
         var acceptTerms = document.getElementById("acceptTerms").checked;
         if (!acceptTerms) showError("termsError", "You must accept the terms and conditions");
 
-        // Prevent form submission if validation fails
-        if (!isValid) {
-          event.preventDefault();
-        } else {
-          // Save user data to localStorage
+        // If validation is successful, store the data
+        if (isValid) {
+          // Retrieve existing data from localStorage or initialize an empty array
+          var userDataList = JSON.parse(localStorage.getItem("userDataList")) || [];
+
+          // Save the new user data
           var userData = {
             name: name,
             email: email,
@@ -148,31 +151,39 @@
             acceptTerms: acceptTerms
           };
 
-          localStorage.setItem("userData", JSON.stringify(userData));
-          displayUserData(userData);
+          userDataList.push(userData);  // Add the new entry
+          localStorage.setItem("userDataList", JSON.stringify(userDataList));  // Save back to localStorage
+
+          displayUserData();  // Update the table with new data
         }
       });
 
-      // Display user data in table
-      function displayUserData(userData) {
+      // Display user data in the table
+      function displayUserData() {
+        var userDataList = JSON.parse(localStorage.getItem("userDataList")) || [];
         var tableBody = document.querySelector("#userTable tbody");
-        tableBody.innerHTML = `
-          <tr>
-            <td>${userData.name}</td>
-            <td>${userData.email}</td>
-            <td>${userData.password}</td>
-            <td>${userData.dob}</td>
-            <td>${userData.acceptTerms ? "true" : "false"}</td>
-          </tr>
-        `;
+
+        // Clear the existing table content
+        tableBody.innerHTML = "";
+
+        // Add each user entry to the table
+        userDataList.forEach(function (userData) {
+          var row = `
+            <tr>
+              <td>${userData.name}</td>
+              <td>${userData.email}</td>
+              <td>${userData.password}</td>
+              <td>${userData.dob}</td>
+              <td>${userData.acceptTerms ? "true" : "false"}</td>
+            </tr>
+          `;
+          tableBody.innerHTML += row;
+        });
       }
 
       // Load saved data from localStorage on page load
       window.onload = function () {
-        var savedData = localStorage.getItem("userData");
-        if (savedData) {
-          displayUserData(JSON.parse(savedData));
-        }
+        displayUserData();
       };
     </script>
   </body>
